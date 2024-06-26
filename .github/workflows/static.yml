@@ -35,6 +35,16 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Handle Data 📈
         run: python3 read_log.py --path ping.log
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date)"
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "DATESTRING"
+          replace: ${{ steps.date.outputs.date }}
+          include: "index.html"
+          exclude: .
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

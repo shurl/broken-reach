@@ -1,0 +1,366 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>My Internetz</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/versions/bulma-no-dark-mode.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<script src="https://cdn.jsdelivr.net/npm/uplot@1.6.30/dist/uPlot.iife.min.js" integrity="sha256-fynNFONthBQatJxeCoBtiOTYVVlqm8DhB5m8LBFLTE8=" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.30/dist/uPlot.min.css" integrity="sha256-32MMao1vjur/JktQ9zzlsRT2Rv/ZoLt08EmwoAE1+gQ=" crossorigin="anonymous">
+		<style>
+			body {
+				margin: 0;
+			}
+			.u-legend.u-inline .u-value {
+				width: 150px;
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body>
+
+		
+			<div class="container has-text-centered" >
+				<section class="bulma-section" id="chart-holder">
+			<h2 class="title" id="wait">Loading lib....</h2>
+			<h3 class="subtitle">Powered by OpenReach</h1>
+                <div class="card article">
+                    <div class="card-content">
+                        <div class="media">
+                            <div class="media-content has-text-centered">
+                                <p class="title article-title is-4">What's this? </p>
+                            </div>
+                        </div>
+                        <div class="content article-body">
+                            <p>This is a view into the the health of my internet connection. I ping out to each address once a second and log the result. 1 is successfull, -1 is a lost packet. Let's not mince words. The results are shocking, and unacceptable (and I'm not even mentioning the speed drops that occur*).</p>
+                            <p>I've been collecting this data since Jan 25th '24, and have quite a lot of datapoints. Too many, <strong><span id="sizep">...</span></strong> datapoints too many.</p>
+                            <p>It's taken so long to get this fixed, I've automated the data collection and publication process. You can even zoom on the graphs!</p>
+                            <p>My ISP is TalkTalk, but that's irrelevant. They've been great at listening to me moan and requesting OpenReach engineers. But this is a problem with the physical connection to my home, not TalkTalk's network. That physical connection is provided and maintained by OpenReach.</p>
+                            <p>I've had OpenReach engineers out on more than 5 occasions. They've all been pleasent and willing to help, but appear hamstrung by internal process. It's clear I need someone to replace my whole damn line as that's the only thing left to replace (yes, we've swapped modems, rj11's,  routers (pointless as there is a modem in front), master sockets, fiber ports in the greenbox...). Yeah, replacing the line is going to suck, and yeah, it's going to take a lot of time from probably 2 of your engineers, but it needs to be done. </p>
+                            <p>To be frank, you're taking the piss.</p>
+                            <p><strong>PLEASE, OPENREACH, FIX MY INTERNET CONNECTION.</strong></p>
+                            <p class="has-text-weight-light"><code>1.1.1.1</code>,<code>4.2.2.1</code> & <code>8.8.8.8</code> were chosen as targets as they are anycast addresses. In theory they should always respond.</p>
+                            <p class="has-text-weight-light">* This is the GFast product and I should be getting 300Mbps. This often drops to 140Mbps.</p>
+
+                    </div>
+                </div>
+                <div class="card-content" id="cchart1">
+                </div>
+                <div class="card-content" id="cchart2">
+                </div>
+                <div class="card-content" id="cchart3">
+                </div>
+                <div class="card-content" id="cchart4">
+                </div>
+                <div class="card-content" id="cchart5">
+                </div>
+
+		<script>
+
+			const axopts = [
+						    {
+						      space: 40,
+						      incrs: [
+						         // minute divisors (# of secs)
+						         1,
+						         5,
+						         10,
+						         15,
+						         30,
+						         // hour divisors
+						         60,
+						         60 * 5,
+						         60 * 10,
+						         60 * 15,
+						         60 * 30,
+						         // day divisors
+						         3600,
+						         3600 * 24 ,
+						         3600 * 24 * 7,
+						        // 3600 * 24 * 28 * 365
+
+						      // ...
+						      ],
+						      // [0]:   minimum num secs in found axis split (tick incr)
+						      // [1]:   default tick format
+						      // [2-7]: rollover tick formats
+						      // [8]:   mode: 0: replace [1] -> [2-7], 1: concat [1] + [2-7]
+						      values: [
+						      // tick incr          default           year                             month    day                        hour     min                sec       mode
+						        //[3600 * 24 * 365,   "{YYYY}",         null,                            null,    null,                      null,    null,              null,        1],
+						        //[3600 * 24 * 28,    "{MMM}",          "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
+						        [3600 * 24,         "{D}/{M}",        "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
+						        [3600,              "{h}{aa}",        "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+						        [60,                "{h}:{mm}{aa}{ss}",   "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+						        [1,                 ":{ss}",          "\n{M}/{D}/{YY} {h}:{mm}{aa}",   null,    "\n{M}/{D} {h}:{mm}{aa}",  null,    "\n{h}:{mm}{aa}",  null,        1],
+						      ],
+						  		//  splits:
+						    }
+  						]
+
+			function legend_value_transform(value){
+				if (value === 1)
+					return "Connected";
+				else
+					return "Disconnected";
+			}
+			function makeCharts(data) {
+				let dpc = data['local']['127.0.0.1']['x'].length;
+				sizep.textContent = dpc.toLocaleString('en');
+				makeChart1(data);
+				makeChart4(data);
+				makeChart8(data);
+				makeChartr(data);
+				makeChartlb(data);
+			}
+
+			function makeChart1(data) {
+				console.time("chart 1.1.1.1");
+				var cdata = [
+					data['internet']['1.1.1.1']['x'],
+					data['internet']['1.1.1.1']['y']
+				];
+				var opts = {
+					  title: "1.1.1.1",
+					  id: "chart1",
+					  class: "my-chart",
+					  width: document.getElementById("cchart1").clientWidth -48,
+					  height: 200,
+					  series: [
+					    {},
+					    {
+					      // initial toggled state (optional)
+					      show: true,
+
+					      spanGaps: false,
+
+					      // in-legend display
+					      label: "1.1.1.1",
+					      value: (self, rawValue) => legend_value_transform(rawValue),
+
+					      // series style
+					      stroke: "firebrick",
+					      width: 1,
+					      fill: "rgba(255, 0, 0, 0)",
+					      dash: [0, 0],
+					    }
+					  ],
+					  axes: axopts,
+					};
+				var uplot = new uPlot(opts, cdata, document.getElementById("cchart1"));
+
+				Promise.resolve().then(() => {
+					wait.textContent = "My Internet Connection";
+					console.timeEnd("chart 1.1.1.1");
+				});
+			}
+
+			function makeChart4(data) {
+				console.time("chart 4.2.2.1");
+				var cdata = [
+					data['internet']['4.2.2.1']['x'],
+					data['internet']['4.2.2.1']['y']
+				];
+				var opts = {
+					  title: "4.2.2.1",
+					  id: "chart2",
+					  class: "my-chart",
+					  width: document.getElementById("cchart2").clientWidth -48,
+					  height: 200,
+					  series: [
+					    {},
+					    {
+					      // initial toggled state (optional)
+					      show: true,
+
+					      spanGaps: false,
+
+					      // in-legend display
+					      label: "4.2.2.1",
+					      value: (self, rawValue) => legend_value_transform(rawValue),
+
+					      // series style
+					      stroke: "firebrick",
+					      width: 1,
+					      fill: "rgba(255, 0, 0, 0)",
+					      dash: [1, 0],
+					    }
+					  ],
+					  axes: axopts,
+					};
+				var uplot = new uPlot(opts, cdata, document.getElementById("cchart2"));
+
+				Promise.resolve().then(() => {
+					console.timeEnd("chart 4.2.2.1");
+				});
+			}
+
+			function makeChart8(data) {
+				console.time("chart 8.8.8.8");
+				var cdata = [
+					data['internet']['8.8.8.8']['x'],
+					data['internet']['8.8.8.8']['y']
+				];
+				var opts = {
+					  title: "8.8.8.8",
+					  id: "chart3",
+					  class: "my-chart",
+					  width: document.getElementById("cchart3").clientWidth -48,
+					  height: 200,
+					  series: [
+					    {},
+					    {
+					      // initial toggled state (optional)
+					      show: true,
+
+					      spanGaps: false,
+
+					      // in-legend display
+					      label: "8.8.8.8",
+					      value: (self, rawValue) => legend_value_transform(rawValue),
+
+					      // series style
+					      stroke: "firebrick",
+					      width: 1,
+					      fill: "rgba(255, 0, 0, 0)",
+					      dash: [1, 0],
+					    }
+					  ],
+					    scales: {
+						    "y": {
+						      auto: false,
+						      range: [-1, 1],
+						      values: (self, ticks) => ticks.map(rawValue => legend_value_transform(rawValue)),
+						    }
+						  },
+
+					   axes: axopts,
+					};
+				var uplot = new uPlot(opts, cdata, document.getElementById("cchart3"));
+
+				Promise.resolve().then(() => {
+					console.timeEnd("chart 8.8.8.8");
+				});
+			}
+
+
+			function makeChartlb(data) {
+				console.time("chart 127.0.0.1");
+				var cdata = [
+					data['local']['127.0.0.1']['x'],
+					data['local']['127.0.0.1']['y']
+				];
+				var opts = {
+					  title: "127.0.0.1",
+					  id: "chart4",
+					  class: "my-chart",
+					  width: document.getElementById("cchart4").clientWidth -48,
+					  height: 200,
+					  series: [
+					    {},
+					    {
+					      // initial toggled state (optional)
+					      show: true,
+
+					      spanGaps: false,
+
+					      // in-legend display
+					      label: "127.0.0.1",
+					      value: (self, rawValue) => legend_value_transform(rawValue),
+
+					      // series style
+					      stroke: "yellowgreen",
+					      width: 1,
+					      fill: "rgba(255, 0, 0, 0)",
+					      dash: [1, 0],
+					    }
+					  ],
+					    scales: {
+						    "y": {
+						      auto: false,
+						      range: [-1, 1],
+						      values: (self, ticks) => ticks.map(rawValue => legend_value_transform(rawValue)),
+						    }
+						  },
+
+					   axes: axopts,
+					};
+				var uplot = new uPlot(opts, cdata, document.getElementById("cchart4"));
+
+				Promise.resolve().then(() => {
+					console.timeEnd("chart 127.0.0.1");
+				});
+			}
+
+
+			function makeChartr(data) {
+				console.time("chart 192.168.1.1");
+				var cdata = [
+					data['local']['192.168.1.1']['x'],
+					data['local']['192.168.1.1']['y']
+				];
+				var opts = {
+					  title: "192.168.1.1",
+					  id: "chart5",
+					  class: "my-chart",
+					  width: document.getElementById("cchart5").clientWidth -48,
+					  height: 200,
+					  series: [
+					    {},
+					    {
+					      // initial toggled state (optional)
+					      show: true,
+
+					      spanGaps: false,
+
+					      // in-legend display
+					      label: "192.168.1.1",
+					      value: (self, rawValue) => legend_value_transform(rawValue),
+
+					      // series style
+					      stroke: "yellowgreen",
+					      width: 1,
+					      fill: "rgba(255, 0, 0, 0)",
+					      dash: [1, 0],
+					    }
+					  ],
+					    scales: {
+						    "y": {
+						      auto: false,
+						      range: [-1, 1],
+						      values: (self, ticks) => ticks.map(rawValue => legend_value_transform(rawValue)),
+						    }
+						  },
+
+					   axes: axopts,
+					};
+				var uplot = new uPlot(opts, cdata, document.getElementById("cchart5"));
+
+				Promise.resolve().then(() => {
+					console.timeEnd("chart 192.168.1.1");
+				});
+			}
+
+			function humanFileSize(size) {
+			    var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+			    return +((size / Math.pow(1024, i)).toFixed(2)) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+			}
+			let url = "data.json";
+			let wait = document.getElementById("wait");
+			let sizep = document.getElementById("sizep");
+
+			fetch(url, { method: "HEAD", headers: {"Content-Encoding" :"gzip;q=0,deflate;q=0"} })
+			  	.then((response) => {
+			  		wait.textContent = "Fetching data.json (" + humanFileSize(response.headers.get('content-length')) + ")....";
+			  });
+
+			fetch(url).then(r => r.json()).then(data => {
+				wait.textContent = "Rendering...";
+				setTimeout(() => makeCharts(data), 0);
+			});
+		</script>
+	</section>
+	</div>
+
+	</body>
+</html>

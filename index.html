@@ -105,9 +105,9 @@
 						        //[3600 * 24 * 365,   "{YYYY}",         null,                            null,    null,                      null,    null,              null,        1],
 						        //[3600 * 24 * 28,    "{MMM}",          "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
 						        [3600 * 24,         "{D}/{M}",        "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
-						        [3600,              "{h}{aa}",        "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
-						        [60,                "{h}:{mm}{aa}{ss}",   "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
-						        [1,                 ":{ss}",          "\n{M}/{D}/{YY} {h}:{mm}{aa}",   null,    "\n{M}/{D} {h}:{mm}{aa}",  null,    "\n{h}:{mm}{aa}",  null,        1],
+						        [3600,              "{HH}",        "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+						        [60,                "{HH}:{mm}:{ss}",   "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+						        [1,                 ":{ss}",          "\n{M}/{D}/{YY} {HH}:{mm}:{ss}",   null,    "\n{M}/{D} {HH}:{mm}:{ss}",  null,    "\n{HH}:{mm}:{ss}",  null,        1],
 						      ],
 						  		//  splits:
 						    }
@@ -142,7 +142,9 @@
 					  width: document.getElementById("cchart1").clientWidth -48,
 					  height: 200,
 					  series: [
-					    {},
+					    {
+      						value: "{DD}-{MM}-{YY} \n{HH}:{mm}:{ss}"
+   	 					},
 					    {
 					      // initial toggled state (optional)
 					      show: true,
@@ -183,7 +185,9 @@
 					  width: document.getElementById("cchart2").clientWidth -48,
 					  height: 200,
 					  series: [
-					    {},
+					    {
+      						value: "{DD}-{MM}-{YY} \n{HH}:{mm}:{ss}"
+   	 					},
 					    {
 					      // initial toggled state (optional)
 					      show: true,
@@ -223,7 +227,9 @@
 					  width: document.getElementById("cchart3").clientWidth -48,
 					  height: 200,
 					  series: [
-					    {},
+					    {
+      						value: "{DD}-{MM}-{YY} \n{HH}:{mm}:{ss}"
+   	 					},
 					    {
 					      // initial toggled state (optional)
 					      show: true,
@@ -272,7 +278,9 @@
 					  width: document.getElementById("cchart4").clientWidth -48,
 					  height: 200,
 					  series: [
-					    {},
+					    {
+      						value: "{DD}-{MM}-{YY} \n{HH}:{mm}:{ss}"
+   	 					},
 					    {
 					      // initial toggled state (optional)
 					      show: true,
@@ -321,7 +329,9 @@
 					  width: document.getElementById("cchart5").clientWidth -48,
 					  height: 200,
 					  series: [
-					    {},
+					    {
+      						value: "{DD}-{MM}-{YY} \n{HH}:{mm}:{ss}"
+   	 					},
 					    {
 					      // initial toggled state (optional)
 					      show: true,

@@ -21,7 +21,6 @@
 			<div class="container " >
 				<section class="bulma-section" id="chart-holder">
 			<h2 class="title has-text-centered" id="wait">Loading lib....</h2>
-			<h3 class="subtitle has-text-centered">Powered by OpenReach</h1>
                 <div class="card article">
                     <div class="card-content">
                         <div class="media">
@@ -166,7 +165,7 @@
 				var uplot = new uPlot(opts, cdata, document.getElementById("cchart1"));
 
 				Promise.resolve().then(() => {
-					wait.textContent = "My Internet Connection";
+					wait.textContent = "My Internet Connection Health";
 					console.timeEnd("chart 1.1.1.1");
 				});
 			}

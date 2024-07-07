@@ -18,8 +18,6 @@
 		</style>
 	</head>
 	<body>
-
-		
 			<div class="container " >
 				<section class="bulma-section" id="chart-holder">
 			<h2 class="title has-text-centered" id="wait">Loading lib....</h2>
@@ -32,16 +30,13 @@
                             </div>
                         </div>
                         <div class="content article-body">
-
-                        	<p>This is a view into the health of my internet connection. It's a GFast 300Mpbs connection. I have been suffering from random disconnects and minor (but frustrating) packet loss consistently since the line has been provisioned (around Nov 23'). I have raised this with my ISP (TalkTalk) multiple times, always resulting in an OpenReach engineer attending, but the issue has yet to be resolved permanently.</p>
-                        	<p>Everything relevant in my home network has been swapped (modem, router (not relevant given the modem but 🤷), master socket, RJ11 cables). Engineers have been to my home more than 5 times. Yet the issue persists.</p>
+                        	<p>This is a view into the health of my internet connection. It's a GFast 300Mpbs connection. I have been suffering from random disconnects and packet loss consistently since the line has been provisioned (around Nov 23'). I have raised this with my ISP (TalkTalk) multiple times, always resulting in an OpenReach engineer attending, but the issue has yet to be resolved permanently.</p>
+                        	<p>Everything in my home network has been swapped (modem, router, master socket, RJ11 cables). Engineers have been to my home more than 5 times. Yet the issue persists.</p>
                         	<p>On top of the packet loss/disconnection issues I also see the line often reconnect at slower speeds (~140Mbps).</p>
-                        	<p>TalkTalk have been great throughout this process, listening to me moan and calling me weekly for an update. But the issue does not lie within their network, so they are dependent on OpenReach to resolve this. The physical line to my home is OpenReach's infrastructure after all.</p>
-                        	<p>And that is almost certainly the issue, the physical line to my home. Given the number of times an engineer has attended my home, I can only assume there is an issue with it. I would like it to be replaced completely (ie, a new line between the green box and my home).</p>
-
+                        	<p>TalkTalk have been great throughout this process, listening to me moan and calling me weekly for an update. But the issue does not lie within their network, so they are dependent on OpenReach to resolve this.</p>
                         	<p class="title article-title is-5 has-text-centered">Method </p>
                         	<p>A raspberry pi in my home network is running a custom Prometheus exporter I wrote, <code>ping_exporter</code>. <code>ping_exporter</code> pings all configured target addresses every second and exposes metrics based on the results which can be scraped by Prometheus and visualized in Grafana. However, grafana cloud free tier has a 14 day retention (and I don't see why I should spend money to prove an issue with OpenReach's network...).</p>
-                        	<p>Due to the retention limitation I started logging to a local log file which logs under the following conditions:</p>
+                        	<p>Due to the retention limitation I started logging to a local file <a href="ping.log"><code>ping.log</code></a> which logs under the following conditions:</p>
                         	<ul>
                         		<li>On application start</li>
                         		<li>If ping is successful, but only once per minute</li>
@@ -51,12 +46,16 @@
                         	<p>I've been collecting this data since Jan 25th '24, and so far I have collected <strong><span id="sizep">...</span></strong> data points.</p>
                         	<p>Frankly, the data paints a very poor picture. An ISP would not accept this kind of loss and instability from their peers, and I am not willing to accept it either.</p>
                             <p class="has-text-weight-light"><code>1.1.1.1</code>,<code>4.2.2.1</code> & <code>8.8.8.8</code> were chosen as targets as they are anycast addresses. In theory they should always respond.</p>
+							<p class="title article-title is-5 has-text-centered">Expectations </p>
+                        	<ul>
+                        		<li>The line should not disconnect randomly (planned maintenance is OK, but I do not receive any notification).</li>
+                        		<li>There should be no packet loss. </li>
+                        		<li>All internet target graphs should look like the local target graphs. IE, no pakcet loss.</li>
+                        	</ul>
                             <p class="has-text-centered"><strong>PLEASE, OPENREACH, FIX MY INTERNET CONNECTION.</strong></p>
-
-                        	<p class="has-text-weight-light is-size-7 is-family-monospace">Data last updated: DATESTRING</p>
-
                         	<p class="title article-title is-4 has-text-centered">The Data </p>
-                        	<p>1 is connected. -1 is disconnected. Graphs can zoom. Double click to remove zoom. Local pings are provided for comparison and aspiration. My expectation is for all graphs to look similar to the router (192.168.1.1) graph.</p>
+                        	<p>1 is connected. -1 is disconnected. Graphs can zoom, just click and drag. Double click in the graphs to reset zoom. Local pings are provided for comparison and aspiration.</p>
+                        	<p class="has-text-weight-light is-size-7 is-family-monospace">Data last updated: DATESTRING</p>
                     </div>
                 </div>
                 <div class="card-content" id="cchart1">
@@ -374,7 +373,7 @@
 			let wait = document.getElementById("wait");
 			let sizep = document.getElementById("sizep");
 
-			fetch(url, { method: "HEAD", headers: {"Content-Encoding" :"gzip;q=0,deflate;q=0"} })
+			fetch(url, {method: "HEAD"})
 			  	.then((response) => {
 			  		wait.textContent = "Fetching data.json (" + humanFileSize(response.headers.get('content-length')) + ")....";
 			  });

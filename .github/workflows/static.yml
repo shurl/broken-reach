@@ -34,7 +34,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Handle Data 📈
-        run: python3 read_log.py --path ping.log
+        run: gunzip ping.log.gz && python3 read_log.py --path ping.log
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date)"
